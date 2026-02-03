@@ -1,4 +1,14 @@
-from sqlalchemy.orm import sessionmaker
-from .database import engine
+from app.db.database import SessionLocal, engine, Base
+from app.db import models
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+def create_tables():
+    Base.metadata.create_all(bind=engine)
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
