@@ -1,6 +1,6 @@
-from sqlalchemy import Column, Integer, String, Date, Time, DateTime, ForeignKey, Boolean, Float
+from sqlalchemy import Column, Integer, String, Date, Time, DateTime, ForeignKey, Boolean, Float, Text
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 from app.db.database import Base
 
 
@@ -14,7 +14,7 @@ class Patient(Base):
     email = Column(String, nullable=True)
     is_insured = Column(Boolean, default=False)
     insurance_provider = Column(String, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
 
     appointments = relationship("Appointment", back_populates="patient")
     logs = relationship("AgentLog", back_populates="patient")
@@ -55,7 +55,6 @@ class Appointment(Base):
 
     appointment_date = Column(Date, nullable=False)
     start_time = Column(Time, nullable=False)
-    end_time = Column(Time, nullable=False)
 
     status = Column(String, default="pending")  
     # pending | confirmed | cancelled
@@ -64,7 +63,7 @@ class Appointment(Base):
     sync_status = Column(String, default="not_synced")
     # not_synced | synced | failed
 
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
 
     patient = relationship("Patient", back_populates="appointments")
     service_type = relationship("ServiceType", back_populates="appointments")
@@ -89,7 +88,7 @@ class AgentLog(Base):
 
     confidence_score = Column(Float, nullable=True)
 
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(DateTime, default=datetime.now(timezone.utc))
 
     patient = relationship("Patient", back_populates="logs")
 
@@ -105,6 +104,18 @@ class Notification(Base):
     recipient = Column(String, nullable=False)
     message = Column(String, nullable=False)
     status = Column(String, default="sent")
-    sent_at = Column(DateTime, default=datetime.utcnow)
+    sent_at = Column(DateTime, default=datetime.now(timezone.utc))
 
     appointment = relationship("Appointment", back_populates="notifications")
+
+# 7️⃣ conversations (memory storage)
+class Conversation(Base):
+    __tablename__ = "conversations"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    session_id = Column(String, index=True, nullable=False)
+    role = Column(String, nullable=False)  # user / assistant / system
+    content = Column(Text, nullable=False)
+
+    timestamp = Column(DateTime, default=datetime.now(timezone.utc))
