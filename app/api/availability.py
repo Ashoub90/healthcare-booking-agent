@@ -1,23 +1,32 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from datetime import date
+from typing import List, Dict, Any
 
 from app.db.session import get_db
-from app.db import models
+from app.services.availability_service import check_availability
 
 router = APIRouter()
 
 
-@router.get("/")
-def get_availability(date: date, service_type_id: int, db: Session = Depends(get_db)):
+@router.get("/", response_model=List[Dict[str, Any]])
+def get_availability(
+    appointment_date: date,
+    service_type_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Returns available time slots for a given date and service type.
+    """
 
-    business_hours = db.query(models.BusinessHour).all()
-    appointments = db.query(models.Appointment).filter(
-        models.Appointment.appointment_date == date
-    ).all()
+    try:
+        slots = check_availability(
+            appointment_date=appointment_date,
+            service_type_id=service_type_id,
+            db=db
+        )
+        return slots
 
-    return {
-        "date": date,
-        "business_hours": business_hours,
-        "appointments": appointments
-    }
+    except ValueError as e:
+        # Business-rule error (e.g. service inactive)
+        raise HTTPException(status_code=400, detail=str(e))

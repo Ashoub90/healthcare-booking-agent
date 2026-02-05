@@ -1,10 +1,14 @@
-from sqlalchemy import Column, Integer, String, Date, Time, DateTime, ForeignKey, Boolean, Float, Text
+from sqlalchemy import Column, Integer, String, Date, Time, DateTime, ForeignKey, Boolean, Float
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from app.db.database import Base
 
 
-# 1️⃣ patients
+
+# -----------------------------
+# Existing models unchanged
+# -----------------------------
+
 class Patient(Base):
     __tablename__ = "patients"
 
@@ -20,7 +24,6 @@ class Patient(Base):
     logs = relationship("AgentLog", back_populates="patient")
 
 
-# 2️⃣ service_types
 class ServiceType(Base):
     __tablename__ = "service_types"
 
@@ -33,7 +36,6 @@ class ServiceType(Base):
     appointments = relationship("Appointment", back_populates="service_type")
 
 
-# 3️⃣ business_hours
 class BusinessHour(Base):
     __tablename__ = "business_hours"
 
@@ -44,24 +46,34 @@ class BusinessHour(Base):
     is_closed = Column(Boolean, default=False)
 
 
-# 4️⃣ appointments
+# -----------------------------
+# NEW: Blocked Slots
+# -----------------------------
+
+class BlockedSlot(Base):
+    __tablename__ = "blocked_slots"
+
+    id = Column(Integer, primary_key=True, index=True)
+    date = Column(Date, nullable=False)
+    start_time = Column(Time, nullable=False)
+    end_time = Column(Time, nullable=False)
+    reason = Column(String, nullable=True)
+
+
 class Appointment(Base):
     __tablename__ = "appointments"
 
     id = Column(Integer, primary_key=True, index=True)
-
     patient_id = Column(Integer, ForeignKey("patients.id"), nullable=False)
     service_type_id = Column(Integer, ForeignKey("service_types.id"), nullable=False)
 
     appointment_date = Column(Date, nullable=False)
     start_time = Column(Time, nullable=False)
+    end_time = Column(Time, nullable=False)
 
-    status = Column(String, default="pending")  
-    # pending | confirmed | cancelled
-
+    status = Column(String, default="pending")
     external_calendar_id = Column(String, nullable=True)
     sync_status = Column(String, default="not_synced")
-    # not_synced | synced | failed
 
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
 
@@ -70,52 +82,29 @@ class Appointment(Base):
     notifications = relationship("Notification", back_populates="appointment")
 
 
-
-# 5️⃣ agent_logs
 class AgentLog(Base):
     __tablename__ = "agent_logs"
 
     id = Column(Integer, primary_key=True, index=True)
-
     patient_id = Column(Integer, ForeignKey("patients.id"), nullable=True)
-
     user_message = Column(String, nullable=False)
     agent_action = Column(String, nullable=False)
-    # check_availability | book_appointment | cancel_appointment | suggest_time
-
     system_decision = Column(String, nullable=False)
-    # booked | suggested_alternative | failed | cancelled
-
     confidence_score = Column(Float, nullable=True)
-
     timestamp = Column(DateTime, default=datetime.now(timezone.utc))
 
     patient = relationship("Patient", back_populates="logs")
 
 
-
-# 6️⃣ notifications
 class Notification(Base):
     __tablename__ = "notifications"
 
     id = Column(Integer, primary_key=True, index=True)
     appointment_id = Column(Integer, ForeignKey("appointments.id"))
-    channel = Column(String, nullable=False)  # email / whatsapp
+    channel = Column(String, nullable=False)
     recipient = Column(String, nullable=False)
     message = Column(String, nullable=False)
     status = Column(String, default="sent")
     sent_at = Column(DateTime, default=datetime.now(timezone.utc))
 
     appointment = relationship("Appointment", back_populates="notifications")
-
-# 7️⃣ conversations (memory storage)
-class Conversation(Base):
-    __tablename__ = "conversations"
-
-    id = Column(Integer, primary_key=True, index=True)
-
-    session_id = Column(String, index=True, nullable=False)
-    role = Column(String, nullable=False)  # user / assistant / system
-    content = Column(Text, nullable=False)
-
-    timestamp = Column(DateTime, default=datetime.now(timezone.utc))

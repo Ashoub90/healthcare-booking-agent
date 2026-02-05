@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from typing import Optional, Dict, Any
 
-from app.services.booking_service import create_appointment_service
+from app.services.appointment_service import create_appointment_service
 from app.services.availability_service import check_availability_service
 from app.services.notification_service import send_notification_service
 from app.services.logging_service import log_agent_action_service
