@@ -1,21 +1,27 @@
 from sqlalchemy.orm import Session
 from typing import Optional, Dict, Any
+from datetime import date, time
 
+from app.services.patient_service import (
+    get_patient_by_phone,
+    create_patient
+)
+from app.services.availability_service import check_availability
 from app.services.appointment_service import create_appointment_service
-from app.services.availability_service import check_availability_service
 from app.services.notification_service import send_notification_service
 from app.services.logging_service import log_agent_action_service
-from app.db import models
 
 
 # =========================
 # Tool 1: Lookup Patient
 # =========================
 
-def lookup_patient_tool(phone_number: str, db: Session) -> Optional[Dict[str, Any]]:
-    patient = db.query(models.Patient).filter(
-        models.Patient.phone_number == phone_number
-    ).first()
+def lookup_patient_tool(
+    phone_number: str,
+    db: Session
+) -> Optional[Dict[str, Any]]:
+
+    patient = get_patient_by_phone(db, phone_number)
 
     if not patient:
         return None
@@ -43,17 +49,14 @@ def create_patient_tool(
     db: Session
 ) -> Dict[str, Any]:
 
-    patient = models.Patient(
+    patient = create_patient(
+        db=db,
         full_name=full_name,
         phone_number=phone_number,
         email=email,
         is_insured=is_insured,
         insurance_provider=insurance_provider
     )
-
-    db.add(patient)
-    db.commit()
-    db.refresh(patient)
 
     return {
         "id": patient.id,
@@ -67,24 +70,20 @@ def create_patient_tool(
 # =========================
 
 def check_availability_tool(
-    appointment_date: str,
+    appointment_date: date,
     service_type_id: int,
-    preferred_time: Optional[str],
     db: Session
 ) -> Dict[str, Any]:
-    """
-    If preferred_time is provided → check that specific slot.
-    If not provided → return all available slots for the day.
-    """
 
-    result = check_availability_service(
+    slots = check_availability(
         appointment_date=appointment_date,
         service_type_id=service_type_id,
-        preferred_time=preferred_time,
         db=db
     )
 
-    return result
+    return {
+        "available_slots": slots
+    }
 
 
 # =========================
@@ -94,25 +93,25 @@ def check_availability_tool(
 def create_appointment_tool(
     patient_id: int,
     service_type_id: int,
-    appointment_date: str,
-    start_time: str,
+    appointment_date: date,
+    start_time: time,
     db: Session
 ) -> Dict[str, Any]:
 
     appointment = create_appointment_service(
+        db=db,
         patient_id=patient_id,
         service_type_id=service_type_id,
         appointment_date=appointment_date,
-        start_time=start_time,
-        db=db
+        start_time=start_time
     )
 
     return {
         "appointment_id": appointment.id,
         "status": appointment.status,
-        "date": str(appointment.appointment_date),
-        "start_time": str(appointment.start_time),
-        "end_time": str(appointment.end_time)
+        "date": appointment.appointment_date.isoformat(),
+        "start_time": appointment.start_time.isoformat(),
+        "end_time": appointment.end_time.isoformat()
     }
 
 

@@ -5,7 +5,7 @@ from app.db import models
 LEAD_TIME_HOURS = 1
 
 
-def create_appointment(
+def create_appointment_service(
     db: Session,
     patient_id: int,
     service_type_id: int,
