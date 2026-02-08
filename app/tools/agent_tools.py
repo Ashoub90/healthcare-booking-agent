@@ -18,13 +18,19 @@ from app.services.logging_service import log_agent_action_service
 
 def lookup_patient_tool(
     phone_number: str,
-    db: Session
+    db: Session,
+    session_state: Dict[str, Any]
 ) -> Optional[Dict[str, Any]]:
+
+    session_state["phone_number"] = phone_number
 
     patient = get_patient_by_phone(db, phone_number)
 
     if not patient:
+        session_state["patient_id"] = None
         return None
+
+    session_state["patient_id"] = patient.id
 
     return {
         "id": patient.id,
@@ -46,7 +52,8 @@ def create_patient_tool(
     email: Optional[str],
     is_insured: bool,
     insurance_provider: Optional[str],
-    db: Session
+    db: Session,
+    session_state: Dict[str, Any]
 ) -> Dict[str, Any]:
 
     patient = create_patient(
@@ -57,6 +64,9 @@ def create_patient_tool(
         is_insured=is_insured,
         insurance_provider=insurance_provider
     )
+
+    session_state["patient_id"] = patient.id
+    session_state["phone_number"] = phone_number
 
     return {
         "id": patient.id,
@@ -70,10 +80,18 @@ def create_patient_tool(
 # =========================
 
 def check_availability_tool(
-    appointment_date: date,
+    appointment_date: str,
     service_type_id: int,
-    db: Session
+    db: Session,
+    session_state: Dict[str, Any]
 ) -> Dict[str, Any]:
+
+    if hasattr(appointment_date, 'isoformat'):
+        session_state["appointment_date"] = appointment_date.isoformat()
+    else:
+        session_state["appointment_date"] = str(appointment_date)
+
+    session_state["service_type_id"] = service_type_id
 
     slots = check_availability(
         appointment_date=appointment_date,
@@ -81,9 +99,7 @@ def check_availability_tool(
         db=db
     )
 
-    return {
-        "available_slots": slots
-    }
+    return {"available_slots": slots}
 
 
 # =========================
@@ -95,7 +111,8 @@ def create_appointment_tool(
     service_type_id: int,
     appointment_date: date,
     start_time: time,
-    db: Session
+    db: Session,
+    session_state: Dict[str, Any]
 ) -> Dict[str, Any]:
 
     appointment = create_appointment_service(
@@ -105,6 +122,8 @@ def create_appointment_tool(
         appointment_date=appointment_date,
         start_time=start_time
     )
+
+    session_state["appointment_id"] = appointment.id
 
     return {
         "appointment_id": appointment.id,
@@ -146,13 +165,13 @@ def send_notification_tool(
 # =========================
 
 def log_agent_action_tool(
-    patient_id: Optional[int],
-    user_message: str,
-    agent_action: str,
-    system_decision: str,
-    confidence_score: Optional[float],
-    db: Session
-) -> None:
+    user_message: str,           # Required (No default)
+    agent_action: str,            # Required (No default)
+    system_decision: str,         # Required (No default)
+    db: Session,                  # Required (No default)
+    patient_id: Optional[int] = None,      # Optional (Has default)
+    confidence_score: Optional[float] = 1.0 # Optional (Has default)
+) -> str:
 
     log_agent_action_service(
         patient_id=patient_id,
@@ -162,3 +181,5 @@ def log_agent_action_tool(
         confidence_score=confidence_score,
         db=db
     )
+    
+    return "Action logged successfully."

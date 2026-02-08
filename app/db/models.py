@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Date, Time, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from app.db.database import Base
+from sqlalchemy.sql import func
 
 
 
@@ -18,7 +19,7 @@ class Patient(Base):
     email = Column(String, nullable=True)
     is_insured = Column(Boolean, default=False)
     insurance_provider = Column(String, nullable=True)
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     appointments = relationship("Appointment", back_populates="patient")
     logs = relationship("AgentLog", back_populates="patient")
@@ -75,7 +76,7 @@ class Appointment(Base):
     external_calendar_id = Column(String, nullable=True)
     sync_status = Column(String, default="not_synced")
 
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     patient = relationship("Patient", back_populates="appointments")
     service_type = relationship("ServiceType", back_populates="appointments")
@@ -91,7 +92,7 @@ class AgentLog(Base):
     agent_action = Column(String, nullable=False)
     system_decision = Column(String, nullable=False)
     confidence_score = Column(Float, nullable=True)
-    timestamp = Column(DateTime, default=datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     patient = relationship("Patient", back_populates="logs")
 
@@ -105,6 +106,6 @@ class Notification(Base):
     recipient = Column(String, nullable=False)
     message = Column(String, nullable=False)
     status = Column(String, default="sent")
-    sent_at = Column(DateTime, default=datetime.now(timezone.utc))
+    sent_at = Column(DateTime(timezone=True), server_default=func.now())
 
     appointment = relationship("Appointment", back_populates="notifications")

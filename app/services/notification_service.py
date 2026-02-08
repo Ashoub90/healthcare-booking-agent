@@ -20,7 +20,7 @@ def send_notification_service(
         channel=channel,
         recipient=recipient,
         message=message,
-        status="sent",
+        status="pending",
     )
 
     db.add(notification)

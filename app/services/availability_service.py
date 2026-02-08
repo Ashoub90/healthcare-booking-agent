@@ -19,7 +19,14 @@ def check_availability(
         raise ValueError("Service type not found or inactive")
 
     duration = timedelta(minutes=service.duration_minutes)
-
+    
+    if isinstance(appointment_date, str):
+        try:
+            # Matches format 'YYYY-MM-DD'
+            appointment_date = datetime.strptime(appointment_date, "%Y-%m-%d").date()
+        except ValueError:
+            raise ValueError(f"Invalid date format: {appointment_date}. Expected YYYY-MM-DD.")
+        
     day_name = appointment_date.strftime("%A")
     business_hour = db.query(models.BusinessHour).filter(
         models.BusinessHour.day_of_week == day_name

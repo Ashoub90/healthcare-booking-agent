@@ -70,3 +70,5 @@ class DBMemoryStore(MemoryStore):
         self.db.add(msg)
         self.db.commit()
         self.db.refresh(msg)
+
+memory_store_instance = InMemoryStore()

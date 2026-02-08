@@ -4,6 +4,17 @@ from app.db import models
 
 LEAD_TIME_HOURS = 1
 
+def parse_time_string(time_str):
+    # List the common formats the agent might send
+    formats = ["%I:%M %p", "%H:%M:%S", "%H:%M"]
+    
+    for fmt in formats:
+        try:
+            return datetime.strptime(time_str, fmt).time()
+        except ValueError:
+            continue
+            
+    raise ValueError(f"Time data '{time_str}' does not match any expected formats.")
 
 def create_appointment_service(
     db: Session,
@@ -12,6 +23,14 @@ def create_appointment_service(
     appointment_date: date,
     start_time: time,
 ):
+    # 1. Convert appointment_date string to date object
+    if isinstance(appointment_date, str):
+        appointment_date = datetime.strptime(appointment_date, "%Y-%m-%d").date()
+
+    # 2. Convert start_time string (e.g., "12:00 PM") to time object
+    if isinstance(start_time, str):
+        start_time = parse_time_string(start_time)
+    
     patient = db.query(models.Patient).filter(
         models.Patient.id == patient_id
     ).first()
@@ -25,12 +44,20 @@ def create_appointment_service(
     if not service:
         raise ValueError("Service type not found or inactive")
 
+
+    
     start_dt = datetime.combine(appointment_date, start_time)
     end_dt = start_dt + timedelta(minutes=service.duration_minutes)
 
     # Lead time enforcement
-    if start_dt < datetime.now(timezone.utc) + timedelta(hours=LEAD_TIME_HOURS):
-        raise ValueError("Appointments must be booked at least 1 hour in advance")
+    now_naive_utc = datetime.now(timezone.utc).replace(tzinfo=None)
+    
+    if start_dt < now_naive_utc + timedelta(hours=LEAD_TIME_HOURS):
+        raise ValueError(
+            f"Appointments must be booked at least {LEAD_TIME_HOURS} hour(s) in advance. "
+            f"Current UTC time: {now_naive_utc.strftime('%H:%M')}, "
+            f"Requested: {start_dt.strftime('%H:%M')}"
+        )
 
     # Conflict with existing appointments
     conflict = db.query(models.Appointment).filter(
