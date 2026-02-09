@@ -93,3 +93,32 @@ def create_appointment_service(
     db.commit()
     db.refresh(appointment)
     return appointment
+
+def get_appointments_by_patient(db: Session, patient_id: int):
+    """
+    Retrieves all non-cancelled appointments for a specific patient,
+    ordered by date and time (soonest first).
+    """
+    return db.query(models.Appointment).filter(
+        models.Appointment.patient_id == patient_id,
+        models.Appointment.status != "cancelled"
+    ).order_by(
+        models.Appointment.appointment_date.asc(), 
+        models.Appointment.start_time.asc()
+    ).all()
+
+def cancel_appointment_service(db: Session, appointment_id: int):
+    """
+    Updates an appointment status to 'cancelled'.
+    """
+    appointment = db.query(models.Appointment).filter(
+        models.Appointment.id == appointment_id
+    ).first()
+    
+    if not appointment:
+        raise ValueError(f"Appointment with ID {appointment_id} not found.")
+    
+    appointment.status = "cancelled"
+    db.commit()
+    db.refresh(appointment)
+    return appointment

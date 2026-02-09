@@ -10,6 +10,8 @@ from app.tools.agent_tools import (
     create_appointment_tool,
     send_notification_tool,
     log_agent_action_tool,
+    get_patient_appointments_tool, # New
+    cancel_appointment_tool        # New
 )
 
 
@@ -18,7 +20,6 @@ def get_langchain_tools(
     session_state: Dict[str, Any]
 ):
     return [
-
         StructuredTool.from_function(
             name="lookup_patient",
             description="ALWAYS call this immediately when a phone number is provided to see if the patient exists.",
@@ -32,7 +33,10 @@ def get_langchain_tools(
 
         StructuredTool.from_function(
             name="create_patient",
-            description="Register a new patient.",
+            description=(
+                "Register a new patient. For 'is_insured', you can accept 'yes', 'no', 'true', or 'false'. "
+                "The system will handle the conversion automatically."
+            ),
             func=lambda full_name, phone_number, email, is_insured, insurance_provider:
                 create_patient_tool(
                     full_name=full_name,
@@ -47,7 +51,7 @@ def get_langchain_tools(
 
         StructuredTool.from_function(
             name="check_availability",
-            description="Check available appointment slots.",
+            description="Check available slots for a date (YYYY-MM-DD) and service_type_id (1: Initial, 2: Follow-up, 3: Lab Review).",
             func=lambda appointment_date, service_type_id:
                 check_availability_tool(
                     appointment_date=appointment_date,
@@ -55,11 +59,11 @@ def get_langchain_tools(
                     db=db,
                     session_state=session_state
                 )
-        ),
+),
 
         StructuredTool.from_function(
             name="create_appointment",
-            description="Create an appointment after confirmation.",
+            description="Create an appointment after the patient confirms a specific date and time.",
             func=lambda patient_id, service_type_id, appointment_date, start_time:
                 create_appointment_tool(
                     patient_id=patient_id,
@@ -72,8 +76,28 @@ def get_langchain_tools(
         ),
 
         StructuredTool.from_function(
+            name="get_patient_appointments",
+            description="Retrieves all upcoming appointments for the identified patient.",
+            func=lambda patient_id:
+                get_patient_appointments_tool(
+                    patient_id=patient_id,
+                    db=db
+                )
+        ),
+
+        StructuredTool.from_function(
+            name="cancel_appointment",
+            description="Cancels an existing appointment using its appointment_id.",
+            func=lambda appointment_id:
+                cancel_appointment_tool(
+                    appointment_id=appointment_id,
+                    db=db
+                )
+        ),
+
+        StructuredTool.from_function(
             name="send_notification",
-            description="Send appointment confirmation.",
+            description="Send appointment confirmation via WhatsApp or Email.",
             func=lambda appointment_id, channel, recipient, message:
                 send_notification_tool(
                     appointment_id=appointment_id,
@@ -86,15 +110,15 @@ def get_langchain_tools(
 
         StructuredTool.from_function(
             name="log_action",
-            description="Call this ONLY after a significant milestone is reached: a patient is identified, a new patient is registered, or an appointment is successfully booked.",
+            description="Call this ONLY after a significant milestone: patient identified, registered, or appointment booked.",
             func=lambda user_message, agent_action, system_decision, patient_id=None, confidence_score=1.0:
                 log_agent_action_tool(
-                user_message=user_message,
-                agent_action=agent_action,
-                system_decision=system_decision,
-                patient_id=patient_id,
-                confidence_score=confidence_score,
-                db=db
+                    user_message=user_message,
+                    agent_action=agent_action,
+                    system_decision=system_decision,
+                    patient_id=patient_id,
+                    confidence_score=confidence_score,
+                    db=db
                 )
         ),
     ]
