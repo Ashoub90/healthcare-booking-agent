@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from app.db.database import Base
 from sqlalchemy.sql import func
+from sqlalchemy.dialects.postgresql import JSONB # Use JSONB for Postgres specifically
 
 
 
@@ -109,3 +110,24 @@ class Notification(Base):
     sent_at = Column(DateTime(timezone=True), server_default=func.now())
 
     appointment = relationship("Appointment", back_populates="notifications")
+
+
+class Conversation(Base):
+    """Stores the literal chat history for the AI's memory"""
+    __tablename__ = "conversations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    session_id = Column(String, nullable=False, index=True)
+    role = Column(String, nullable=False)  # 'human' or 'ai'
+    content = Column(String, nullable=False)
+    timestamp = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class SessionState(Base):
+    """Stores variables like patient_id, current_step, etc."""
+    __tablename__ = "session_states"
+
+    session_id = Column(String, primary_key=True, index=True)
+    # JSONB is faster to process and allows for indexing in Postgres
+    data = Column(JSONB, default={}, nullable=False) 
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

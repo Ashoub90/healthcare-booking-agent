@@ -78,7 +78,7 @@ def check_availability(
 
         # Lead time check
         if appointment_date == now.date() and current < min_allowed:
-            current += duration
+            current += timedelta(minutes=15)
             continue
 
         conflict = any(
@@ -92,6 +92,6 @@ def check_availability(
                 "end_time": slot_end.time()
             })
 
-        current += duration
+        current += timedelta(minutes=15)
 
     return available_slots

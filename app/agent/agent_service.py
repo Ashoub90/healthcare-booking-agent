@@ -8,8 +8,8 @@ from langchain_openai import ChatOpenAI
 from langchain.agents import create_tool_calling_agent, AgentExecutor
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
-from app.agent.memory import MemoryStore, InMemoryStore, memory_store_instance
-from app.agent.session_state import SessionStateStore, state_store_instance
+from app.agent.memory import DBMemoryStore
+from app.agent.session_state import DBSessionStateStore
 from app.agent.langchain_tools import get_langchain_tools
 from langchain_core.messages import trim_messages
 
@@ -57,6 +57,8 @@ LOGIC FLOW:
 
 The current date is {current_date}. Always use YYYY-MM-DD format for tool calls internally.
 
+CLINIC HOURS: The clinic is open Monday through Friday, 9:00 AM to 5:00 PM. We are closed on Saturdays and Sundays. If a user asks for these days, politely inform them we are closed and suggest the next available Monday.
+
 Respond in natural language only.
 """
 
@@ -69,12 +71,12 @@ class AgentService:
     def __init__(
         self,
         db: Session,
-        memory_store: MemoryStore | None = None,
-        state_store: SessionStateStore | None = None,
+        memory_store: Any = None,
+        state_store: Any = None,
     ):
         self.db = db
-        self.memory_store = memory_store or memory_store_instance
-        self.state_store = state_store or state_store_instance
+        self.memory_store = memory_store or DBMemoryStore(db)
+        self.state_store = state_store or DBSessionStateStore(db)
 
 
         # LLM
@@ -116,15 +118,20 @@ class AgentService:
     ) -> Dict[str, Any]:
         
         logger.debug(f"BEFORE RUN - SESSION: {session_id}")
+        
         session_state = self.state_store.get(session_id)
+        chat_history = self.memory_store.get(session_id)
+        
         logger.debug(f"STATE LOADED: {json.dumps(session_state, indent=2)}")
+        
+        
+        trimmed_history = self.trimmer.invoke(chat_history)
         
         current_date_str = datetime.now().strftime("%A, %B %d, %Y")
 
-        # Load memory & state
-        chat_history = self.memory_store.get(session_id)
 
-        trimmed_history = self.trimmer.invoke(chat_history)
+        self.memory_store.save(session_id, "user", user_message)
+
 
         # Build tools WITH state reference
         tools = get_langchain_tools(
@@ -159,7 +166,6 @@ class AgentService:
         reply = result["output"]
 
         # Persist memory + state
-        self.memory_store.save(session_id, "user", user_message)
         self.memory_store.save(session_id, "assistant", reply)
         self.state_store.set(session_id, session_state)
 
