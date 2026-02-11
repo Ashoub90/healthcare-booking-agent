@@ -1,6 +1,8 @@
 from sqlalchemy.orm import Session
 from typing import Optional
 from app.db import models
+from app.services.logging_service import log_agent_action_service
+
 
 
 def get_patient_by_phone(db: Session, phone_number: str) -> Optional[models.Patient]:
@@ -43,4 +45,14 @@ def create_patient(
     db.add(patient)
     db.commit()
     db.refresh(patient)
+    
+    log_agent_action_service(
+        db=db,
+        patient_id=patient.id,
+        log_context="[System Auto-Log]",
+        agent_action="PATIENT_REGISTERED",
+        system_decision=f"New patient {full_name} added to database.",
+        confidence_score=1.0
+    )
+    
     return patient

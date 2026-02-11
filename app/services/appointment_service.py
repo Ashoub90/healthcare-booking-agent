@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, date, time, timezone
 from sqlalchemy.orm import Session
 from app.db import models
 from app.services.calendar_service import CalendarService
+from app.services.logging_service import log_agent_action_service
 
 LEAD_TIME_HOURS = 1
 google_cal = CalendarService()
@@ -119,7 +120,17 @@ def create_appointment_service(
         
         # Save the Google Event ID to your Postgres record
         appointment.google_event_id = event.get('id')
+        appointment.sync_status = 'synced'
         db.commit() 
+
+        log_agent_action_service(
+        db=db,
+        patient_id=patient_id,
+        log_context="[System Auto-Log]",
+        agent_action="BOOKING_CREATED",
+        system_decision=f"Appt {appointment.id} for {appointment_date} at {start_time}",
+        confidence_score=1.0
+        )
         
     except Exception as e:
         print(f"Postgres succeeded but Google sync failed: {e}")
@@ -160,4 +171,14 @@ def cancel_appointment_service(db: Session, appointment_id: int):
     appointment.status = "cancelled"
     db.commit()
     db.refresh(appointment)
+    
+    log_agent_action_service(
+        db=db,
+        patient_id=appointment.patient_id,
+        log_context="[System Auto-Log]",
+        agent_action="BOOKING_CANCELLED",
+        system_decision=f"Appt {appointment_id} removed from DB/Google",
+        confidence_score=1.0
+    )
+    
     return appointment

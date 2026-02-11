@@ -4,7 +4,7 @@ from typing import Optional
 
 class AgentLogCreate(BaseModel):
     patient_id: Optional[int]
-    user_message: str
+    log_message: str
     agent_action: str
     system_decision: str
     confidence_score: Optional[float]  

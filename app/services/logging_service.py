@@ -6,7 +6,7 @@ from app.db import models
 
 def log_agent_action_service(
     patient_id: Optional[int],
-    user_message: str,
+    log_context: str,
     agent_action: str,
     system_decision: str,
     confidence_score: Optional[float],
@@ -18,7 +18,7 @@ def log_agent_action_service(
 
     log = models.AgentLog(
         patient_id=patient_id,
-        user_message=user_message,
+        log_context=log_context,
         agent_action=agent_action,
         system_decision=system_decision,
         confidence_score=confidence_score,

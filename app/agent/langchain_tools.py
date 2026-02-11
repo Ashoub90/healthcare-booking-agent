@@ -9,7 +9,6 @@ from app.tools.agent_tools import (
     check_availability_tool,
     create_appointment_tool,
     send_notification_tool,
-    log_agent_action_tool,
     get_patient_appointments_tool, # New
     cancel_appointment_tool        # New
 )
@@ -108,17 +107,5 @@ def get_langchain_tools(
                 )
         ),
 
-        StructuredTool.from_function(
-            name="log_action",
-            description="Call this ONLY after a significant milestone: patient identified, registered, or appointment booked.",
-            func=lambda user_message, agent_action, system_decision, patient_id=None, confidence_score=1.0:
-                log_agent_action_tool(
-                    user_message=user_message,
-                    agent_action=agent_action,
-                    system_decision=system_decision,
-                    patient_id=patient_id,
-                    confidence_score=confidence_score,
-                    db=db
-                )
-        ),
     ]
+

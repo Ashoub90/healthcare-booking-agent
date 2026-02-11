@@ -90,7 +90,7 @@ class AgentLog(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     patient_id = Column(Integer, ForeignKey("patients.id"), nullable=True)
-    user_message = Column(String, nullable=False)
+    log_context = Column(String, nullable=False)
     agent_action = Column(String, nullable=False)
     system_decision = Column(String, nullable=False)
     confidence_score = Column(Float, nullable=True)

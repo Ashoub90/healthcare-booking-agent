@@ -231,30 +231,6 @@ def send_notification_tool(
     }
 
 
-# =========================
-# Tool 6: Log Agent Action
-# =========================
-
-def log_agent_action_tool(
-    user_message: str,           # Required (No default)
-    agent_action: str,            # Required (No default)
-    system_decision: str,         # Required (No default)
-    db: Session,                  # Required (No default)
-    patient_id: Optional[int] = None,      # Optional (Has default)
-    confidence_score: Optional[float] = 1.0 # Optional (Has default)
-) -> str:
-
-    log_agent_action_service(
-        patient_id=patient_id,
-        user_message=user_message,
-        agent_action=agent_action,
-        system_decision=system_decision,
-        confidence_score=confidence_score,
-        db=db
-    )
-    
-    return "Action logged successfully."
-
 def get_patient_appointments_tool(
     patient_id: int,
     db: Session
