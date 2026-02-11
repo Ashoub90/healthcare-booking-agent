@@ -8,3 +8,6 @@ langchain==0.3.14
 langchain-openai==0.3.1
 langchain-community==0.3.14
 openai
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib

@@ -1,9 +1,10 @@
 from datetime import date, datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 from app.db import models
+from app.services.calendar_service import CalendarService
 
 LEAD_TIME_HOURS = 1
-
+google_cal = CalendarService()
 
 def check_availability(
     appointment_date: date,
@@ -65,8 +66,15 @@ def check_availability(
         for b in blocked
     ]
 
-    all_blocked = booked_slots + blocked_slots
-
+    try:
+            # Ask Google: "What is the doctor doing today that we don't know about?"
+            google_busy = google_cal.get_busy_slots(appointment_date)
+            all_blocked = booked_slots + blocked_slots + google_busy
+    
+    except Exception:
+            # Fallback to just Postgres if Google fails
+            all_blocked = booked_slots + blocked_slots
+        
     now = datetime.now(timezone.utc)
     min_allowed = now + timedelta(hours=LEAD_TIME_HOURS)
 

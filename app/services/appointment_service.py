@@ -1,8 +1,11 @@
 from datetime import datetime, timedelta, date, time, timezone
 from sqlalchemy.orm import Session
 from app.db import models
+from app.services.calendar_service import CalendarService
 
 LEAD_TIME_HOURS = 1
+google_cal = CalendarService()
+
 
 def parse_time_string(time_str):
     # List the common formats the agent might send
@@ -80,6 +83,16 @@ def create_appointment_service(
     if blocked:
         raise ValueError("Time slot is blocked")
 
+    try:
+            google_busy = google_cal.get_busy_slots(appointment_date)
+            # Check if the requested start/end overlaps with any Google event
+            for g_start, g_end in google_busy:
+                if start_dt < g_end and end_dt > g_start:
+                    raise ValueError("This slot is blocked on the doctor's external Google Calendar.")
+    except Exception as e:
+            # If Google is down, we still allow the booking based on Postgres rules
+            print(f"Warning: Could not verify Google Calendar availability: {e}")
+
     appointment = models.Appointment(
         patient_id=patient_id,
         service_type_id=service_type_id,
@@ -92,6 +105,25 @@ def create_appointment_service(
     db.add(appointment)
     db.commit()
     db.refresh(appointment)
+
+    try:
+        full_start = datetime.combine(appointment_date, start_time)
+        full_end = full_start + timedelta(minutes=service.duration_minutes)
+        
+        # Capture the response from Google
+        event = google_cal.create_event(
+            summary=f"Appointment: {patient.full_name} ({service.name})",
+            start_time=full_start, # If your create_event method handles objects, keep this. 
+            end_time=full_end      # But usually it needs full_start.isoformat()
+        )
+        
+        # Save the Google Event ID to your Postgres record
+        appointment.google_event_id = event.get('id')
+        db.commit() 
+        
+    except Exception as e:
+        print(f"Postgres succeeded but Google sync failed: {e}")
+
     return appointment
 
 def get_appointments_by_patient(db: Session, patient_id: int):
@@ -109,7 +141,7 @@ def get_appointments_by_patient(db: Session, patient_id: int):
 
 def cancel_appointment_service(db: Session, appointment_id: int):
     """
-    Updates an appointment status to 'cancelled'.
+    Updates status to 'cancelled' and removes from Google Calendar.
     """
     appointment = db.query(models.Appointment).filter(
         models.Appointment.id == appointment_id
@@ -117,6 +149,13 @@ def cancel_appointment_service(db: Session, appointment_id: int):
     
     if not appointment:
         raise ValueError(f"Appointment with ID {appointment_id} not found.")
+
+    # NEW: Remove from Google Calendar if an ID exists
+    if hasattr(appointment, 'google_event_id') and appointment.google_event_id:
+        try:
+            google_cal.delete_event(appointment.google_event_id)
+        except Exception as e:
+            print(f"Warning: Could not delete Google event {appointment.google_event_id}: {e}")
     
     appointment.status = "cancelled"
     db.commit()

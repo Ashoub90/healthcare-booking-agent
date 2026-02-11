@@ -16,7 +16,7 @@ class AppointmentOut(BaseModel):
     start_time: time
     end_time: time
     status: str
-    external_calendar_id: str | None
+    google_event_id: str | None
     sync_status: str
     created_at: datetime
 

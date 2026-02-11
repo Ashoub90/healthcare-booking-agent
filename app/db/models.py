@@ -74,10 +74,11 @@ class Appointment(Base):
     end_time = Column(Time, nullable=False)
 
     status = Column(String, default="pending")
-    external_calendar_id = Column(String, nullable=True)
     sync_status = Column(String, default="not_synced")
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    google_event_id = Column(String, nullable=True)
 
     patient = relationship("Patient", back_populates="appointments")
     service_type = relationship("ServiceType", back_populates="appointments")

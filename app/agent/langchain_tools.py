@@ -77,7 +77,7 @@ def get_langchain_tools(
 
         StructuredTool.from_function(
             name="get_patient_appointments",
-            description="Retrieves all upcoming appointments for the identified patient.",
+            description="Retrieves upcoming appointments. Use the 'ID' from this list when calling cancel_appointment.",
             func=lambda patient_id:
                 get_patient_appointments_tool(
                     patient_id=patient_id,
@@ -87,7 +87,7 @@ def get_langchain_tools(
 
         StructuredTool.from_function(
             name="cancel_appointment",
-            description="Cancels an existing appointment using its appointment_id.",
+            description="Cancels an appointment. You MUST provide the exact appointment_id retrieved from get_patient_appointments. Never guess or use '1' as a default.",
             func=lambda appointment_id:
                 cancel_appointment_tool(
                     appointment_id=appointment_id,

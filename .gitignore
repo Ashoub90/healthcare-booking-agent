@@ -2,3 +2,5 @@ venv/
 __pycache__/
 .env
 clinic.db
+token.json
+credentials.json
