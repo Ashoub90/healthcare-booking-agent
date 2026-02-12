@@ -26,3 +26,10 @@ def log_agent_action_service(
 
     db.add(log)
     db.commit()
+
+
+def get_logs(db: Session, limit: int = 100):
+    """
+    Fetches the most recent logs for the staff dashboard.
+    """
+    return db.query(models.AgentLog).order_by(models.AgentLog.id.desc()).limit(limit).all()

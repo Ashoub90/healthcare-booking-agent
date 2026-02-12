@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.api import patients, appointments, availability, service_types, business_hours, chat
+from app.api import patients, appointments, availability, service_types, business_hours, chat, logs
 from app.db.session import create_tables
 
 app = FastAPI(title="Healthcare Booking Assistant")
@@ -12,7 +12,7 @@ app.include_router(business_hours.router, prefix="/business-hours", tags=["Busin
 app.include_router(appointments.router, prefix="/appointments", tags=["Appointments"])
 app.include_router(availability.router, prefix="/availability", tags=["Availability"])
 app.include_router(chat.router, prefix="/chat", tags=["Chat"])
-
+app.include_router(logs.router, prefix="/logs", tags=["Logs"])
 
 
 @app.get("/")

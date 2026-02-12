@@ -1,0 +1,13 @@
+# Ignore frontend heavy weights
+healthcare-frontend/node_modules
+healthcare-frontend/build
+
+# Ignore backend heavy weights
+**/__pycache__
+**/.venv
+**/venv
+.env
+
+# Ignore git and logs
+.git
+*.log

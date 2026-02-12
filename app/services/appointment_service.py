@@ -137,6 +137,14 @@ def create_appointment_service(
 
     return appointment
 
+
+def get_appointments(db: Session):
+    """
+    Retrieves ALL appointments for the admin dashboard.
+    """
+    return db.query(models.Appointment).order_by(models.Appointment.appointment_date.desc()).all()
+
+
 def get_appointments_by_patient(db: Session, patient_id: int):
     """
     Retrieves all non-cancelled appointments for a specific patient,
