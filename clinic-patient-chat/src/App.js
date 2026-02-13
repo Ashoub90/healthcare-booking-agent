@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { sendMessage } from './api';
-import { Send, Activity, RefreshCw } from 'lucide-react';
+import { Send, Activity, RefreshCw, User, Bot } from 'lucide-react';
 
 function App() {
   const [input, setInput] = useState('');
@@ -11,7 +11,6 @@ function App() {
   const [sessionState, setSessionState] = useState(null);
   const scrollRef = useRef(null);
 
-  // 1. Manage/Generate Session ID (Invisible to UI, but used in API)
   const [sessionId] = useState(() => {
     let sid = localStorage.getItem('chat_session_id');
     if (!sid) {
@@ -50,7 +49,6 @@ function App() {
       if (data && data.session_state) {
         setSessionState(data.session_state);
       }
-
     } catch (error) {
       setMessages(prev => [...prev, { role: 'assistant', text: "I'm having trouble reaching the clinic. Please try again later." }]);
     } finally {
@@ -58,34 +56,40 @@ function App() {
     }
   };
 
-  // --- Styles ---
+  // --- Updated Styles for Vertical Stack ---
   const containerStyle = { display: 'flex', flexDirection: 'column', height: '100vh', background: '#f8fafc', fontFamily: '"Inter", sans-serif' };
   const headerStyle = { padding: '15px 20px', background: '#fff', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' };
-  const listStyle = { flex: 1, padding: '20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' };
+  const listStyle = { flex: 1, padding: '20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '24px' };
   const inputAreaStyle = { padding: '20px', display: 'flex', gap: '10px', background: 'white', borderTop: '1px solid #e2e8f0' };
   
   const bubbleStyle = (role) => ({
-    padding: '12px 16px',
-    borderRadius: role === 'user' ? '18px 18px 2px 18px' : '18px 18px 18px 2px',
-    background: role === 'user' ? '#2563eb' : '#ffffff',
-    color: role === 'user' ? '#fff' : '#1e293b',
-    maxWidth: '75%',
+    padding: '16px',
+    borderRadius: '12px',
+    background: role === 'user' ? '#eff6ff' : '#ffffff',
+    color: '#1e293b',
+    width: '100%',
+    boxSizing: 'border-box',
     fontSize: '14px',
-    lineHeight: '1.5',
-    boxShadow: '0 2px 5px rgba(0,0,0,0.05)',
-    alignSelf: role === 'user' ? 'flex-end' : 'flex-start'
+    lineHeight: '1.6',
+    border: role === 'user' ? '1px solid #dbeafe' : '1px solid #e2e8f0',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px'
   });
 
-  const stateBarStyle = {
-    padding: '8px 20px',
-    background: '#eff6ff',
-    borderBottom: '1px solid #dbeafe',
+  const labelStyle = (role) => ({
+    fontSize: '11px',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+    color: role === 'user' ? '#3b82f6' : '#64748b',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    fontSize: '12px',
-    color: '#1e40af'
-  };
+    gap: '6px'
+  });
+
+  const stateBarStyle = { padding: '8px 20px', background: '#f0fdf4', borderBottom: '1px solid #dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px', color: '#166534' };
 
   return (
     <div style={containerStyle}>
@@ -99,28 +103,30 @@ function App() {
         </button>
       </header>
 
-      {/* 2. Hidden Info Bar: ONLY shows when a Patient ID is identified */}
       {sessionState && sessionState.patient_id && (
         <div style={stateBarStyle}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#16a34a' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Activity size={14} />
             <span>Identified Patient ID: <strong>{sessionState.patient_id}</strong></span>
           </div>
-          <div style={{ fontSize: '10px', color: '#94a3b8', fontWeight: '500' }}>
-            SECURE SESSION
-          </div>
+          <div style={{ fontSize: '10px', fontWeight: '700', color: '#15803d' }}>SECURE SESSION ACTIVE</div>
         </div>
       )}
 
       <div style={listStyle}>
         {messages.map((msg, i) => (
           <div key={i} style={bubbleStyle(msg.role)}>
-            {msg.text}
+            <div style={labelStyle(msg.role)}>
+              {msg.role === 'user' ? <User size={12}/> : <Bot size={12}/>}
+              {msg.role === 'user' ? 'You' : 'Assistant'}
+            </div>
+            <div style={{ whiteSpace: 'pre-wrap' }}>{msg.text}</div>
           </div>
         ))}
         {isTyping && (
           <div style={bubbleStyle('assistant')}>
-            <span style={{ fontStyle: 'italic', color: '#64748b' }}>Thinking...</span>
+            <div style={labelStyle('assistant')}><Bot size={12}/> Assistant</div>
+            <span style={{ fontStyle: 'italic', color: '#94a3b8' }}>Thinking...</span>
           </div>
         )}
         <div ref={scrollRef} />

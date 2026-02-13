@@ -29,3 +29,19 @@ def create_appointment_api(
 @router.get("/", response_model=List[AppointmentOut])
 def list_appointments(db: Session = Depends(get_db)):
     return appointment_service.get_appointments(db)
+
+
+@router.patch("/{appointment_id}/status", response_model=AppointmentOut)
+def update_status_api(
+    appointment_id: int, 
+    new_status: str, 
+    db: Session = Depends(get_db)
+):
+    try:
+        return appointment_service.update_appointment_status_service(
+            db=db, 
+            appointment_id=appointment_id, 
+            new_status=new_status
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))

@@ -203,3 +203,24 @@ def cancel_appointment_service(db: Session, appointment_id: int):
     )
     
     return appointment
+
+def update_appointment_status_service(db: Session, appointment_id: int, new_status: str):
+    appointment = db.query(models.Appointment).filter(models.Appointment.id == appointment_id).first()
+    
+    if not appointment:
+        raise ValueError(f"Appointment {appointment_id} not found")
+
+    appointment.status = new_status
+    db.commit()
+    db.refresh(appointment)
+
+    # Log the status change
+    log_agent_action_service(
+        db=db,
+        patient_id=appointment.patient_id,
+        log_context="[Admin Dashboard]",
+        agent_action="STATUS_UPDATED",
+        system_decision=f"Appt {appointment_id} set to {new_status}",
+        confidence_score=1.0
+    )
+    return appointment

@@ -11,3 +11,6 @@ openai
 google-api-python-client
 google-auth-httplib2
 google-auth-oauthlib
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
