@@ -1,6 +1,8 @@
-# Ignore frontend heavy weights
-healthcare-frontend/node_modules
-healthcare-frontend/build
+# Ignore frontend heavy weights (New Folders)
+clinic-admin-ui/node_modules
+clinic-admin-ui/build
+clinic-patient-chat/node_modules
+clinic-patient-chat/build
 
 # Ignore backend heavy weights
 **/__pycache__
@@ -11,3 +13,7 @@ healthcare-frontend/build
 # Ignore git and logs
 .git
 *.log
+
+# Ignore OS specific files
+.DS_Store
+Thumbs.db

@@ -148,15 +148,28 @@ def get_appointments(db: Session):
 def get_appointments_by_patient(db: Session, patient_id: int):
     """
     Retrieves all non-cancelled appointments for a specific patient,
-    ordered by date and time (soonest first).
+    ordered by date and time (soonest first), and logs the access.
     """
-    return db.query(models.Appointment).filter(
+    appointments = db.query(models.Appointment).filter(
         models.Appointment.patient_id == patient_id,
         models.Appointment.status != "cancelled"
     ).order_by(
         models.Appointment.appointment_date.asc(), 
         models.Appointment.start_time.asc()
     ).all()
+
+    # Log the data retrieval action
+    log_agent_action_service(
+        db=db,
+        patient_id=patient_id,
+        log_context="[System Auto-Log]",
+        agent_action="DATA_RETRIEVAL",
+        system_decision=f"Retrieved {len(appointments)} active appointments for patient_id {patient_id}",
+        confidence_score=1.0
+    )
+
+    return appointments
+
 
 def cancel_appointment_service(db: Session, appointment_id: int):
     """

@@ -48,11 +48,12 @@ LOGIC FLOW:
 1. IDENTIFICATION: Obtain 'phone_number' and call 'lookup_patient'.
 2. REGISTRATION: Collect Name -> Email -> Insurance (one by one) and call 'create_patient'.
 3. VIEWING: Call 'get_patient_appointments'.
-4. CANCELLATION: List choices, confirm ID, then call 'cancel_appointment'.
+4. CANCELLATION: List choices, confirm ID, then call 'cancel_appointment'. 
 5. BOOKING: 
-   - Step A: Check availability and present options.
-   - Step B: Once a user selects a slot, VERIFY intent (Ask: "Confirm 9:30 AM on Feb ?").
-   - Step C: Only after "Yes", call 'create_appointment'.
+   - Step A: If the user hasn't specified a date, ASK for one (e.g., "Which day would you like to come in?").
+   - Step B: Call 'get_availability' with the date provided and present options.
+   - Step C: Once a user selects a slot, VERIFY intent (Ask: "Confirm 9:30 AM on Feb ?").
+   - Step D: Only after "Yes", call 'create_appointment'.
    - POST-BOOKING: Transition to asking for notification preference (Email or WhatsApp).
 
 The current date is {current_date}. Always use YYYY-MM-DD format for tool calls internally.
@@ -174,4 +175,5 @@ class AgentService:
         logger.debug(f"AFTER RUN - STATE SAVED: {json.dumps(session_state, indent=2)}")
         
 
-        return {"reply": reply}
+        return {"reply": reply,
+                "session_state": session_state}
