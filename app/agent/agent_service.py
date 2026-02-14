@@ -59,6 +59,7 @@ LOGIC FLOW:
    - Step C: Once a user selects a slot, VERIFY intent (Ask: "Confirm 9:30 AM on Feb ?").
    - Step D: Only after "Yes", call 'create_appointment'.
    - POST-BOOKING: Transition to asking for notification preference (Email or WhatsApp).
+   - If the patient's email is already available in the patient record, do not ask for it again.
 
 - Reference the current date ({current_date}) for all calculations.
 - If the user provides a date, the system will determine weekdays. Do not assume a day is closed unless the availability tool confirms it.   

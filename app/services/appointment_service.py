@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from app.db import models
 from app.services.calendar_service import CalendarService
 from app.services.logging_service import log_agent_action_service
+from app.services.email_service import send_confirmation_email
+from typing import List, Any, Optional
 
 LEAD_TIME_HOURS = 1
 google_cal = CalendarService()
@@ -204,9 +206,18 @@ def cancel_appointment_service(db: Session, appointment_id: int):
     
     return appointment
 
-def update_appointment_status_service(db: Session, appointment_id: int, new_status: str):
+# appointment_service.py
+
+def update_appointment_status_service(
+    db: Session, 
+    appointment_id: int, 
+    new_status: str, 
+    background_tasks: Any = None # Added this
+):
     appointment = db.query(models.Appointment).filter(models.Appointment.id == appointment_id).first()
     
+    print(f"DEBUG: Updating status to {new_status} for ID {appointment_id}") # Add this
+
     if not appointment:
         raise ValueError(f"Appointment {appointment_id} not found")
 
@@ -214,7 +225,17 @@ def update_appointment_status_service(db: Session, appointment_id: int, new_stat
     db.commit()
     db.refresh(appointment)
 
-    # Log the status change
+    if new_status == "confirmed":
+        patient = appointment.patient
+        if patient and patient.email:
+            # Check if we have background_tasks available
+            print(f"DEBUG: Attempting to send email to {patient.email}")
+            send_confirmation_email(
+                    patient_email=patient.email,
+                    patient_name=patient.full_name,
+                    appt_details=f"{appointment.appointment_date} at {appointment.start_time}"
+                )
+
     log_agent_action_service(
         db=db,
         patient_id=appointment.patient_id,

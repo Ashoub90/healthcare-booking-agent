@@ -22,23 +22,25 @@ function App() {
   };
 
   const handleStatusChange = async (id, currentStatus) => {
-      // Definining the cycle logic: 
-      // If pending -> confirmed
-      // If confirmed -> completed
-      // If completed -> back to pending
-      let nextStatus;
-      if (currentStatus === 'pending') nextStatus = 'confirmed';
-      else if (currentStatus === 'confirmed') nextStatus = 'completed';
-      else nextStatus = 'pending'; 
+    let nextStatus;
+    if (currentStatus === 'pending') nextStatus = 'confirmed';
+    else if (currentStatus === 'confirmed') nextStatus = 'completed';
+    else nextStatus = 'pending';
 
-      try {
-          await updateAppointmentStatus(id, nextStatus);
-          // Update local state so UI updates without a refresh
-          setAppointments(prev => prev.map(a => a.id === id ? { ...a, status: nextStatus } : a));
-      } catch (err) {
-          console.error("Failed to update status:", err);
-      }
-    };
+    try {
+        // 1. Wait for the backend to finish the update
+        const response = await updateAppointmentStatus(id, nextStatus);
+        
+        // 2. Use the data returned from the server (response.data) 
+        // to update the local state. This ensures the UI matches the DB.
+        setAppointments(prev => prev.map(a => 
+            a.id === id ? { ...a, status: response.data.status } : a
+        ));
+    } catch (err) {
+        console.error("Failed to update status:", err);
+        alert("Could not update status. Check console for errors.");
+    }
+};
 
   useEffect(() => {
     if (!token) return;

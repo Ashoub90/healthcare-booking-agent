@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -35,13 +35,15 @@ def list_appointments(db: Session = Depends(get_db)):
 def update_status_api(
     appointment_id: int, 
     new_status: str, 
+    background_tasks: BackgroundTasks, # Added this line
     db: Session = Depends(get_db)
 ):
     try:
         return appointment_service.update_appointment_status_service(
             db=db, 
             appointment_id=appointment_id, 
-            new_status=new_status
+            new_status=new_status,
+            background_tasks=background_tasks # Pass it to the service
         )
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
