@@ -116,7 +116,7 @@ function App() {
 
       <div style={{ padding: '24px', background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
         {activeTab === 'appointments' && (
-          <Table headers={['ID', 'Patient', 'Date', 'Time', 'Status']} data={filteredAppts.map(a => [
+          <Table headers={['ID', 'Patient ID', 'Date', 'Time', 'Status']} data={filteredAppts.map(a => [
             `#${a.id}`, 
             a.patient_id, 
             a.appointment_date, 
@@ -141,8 +141,8 @@ function App() {
         )}
 
         {activeTab === 'patients' && (
-          <Table headers={['ID', 'Name', 'Email', 'Phone', 'Insurance']} data={filteredPatients.map(p => [
-            `#${p.id}`, <strong>{p.full_name}</strong>, p.email, p.phone_number, p.has_insurance ? 'Yes' : 'No'
+          <Table headers={['ID', 'Name', 'Email', 'Phone', 'Insured', 'Provider']} data={filteredPatients.map(p => [
+            `#${p.id}`, <strong>{p.full_name}</strong>, p.email, p.phone_number, p.is_insured ? 'Yes' : 'No', p.insurance_provider || 'N/A'
           ])} />
         )}
 

@@ -164,7 +164,7 @@ def create_appointment_tool(
         return "Error: Cannot book appointment because patient_id is missing. Please identify or register the patient first."
 
     if session_state.get("appointment_id"):
-        return f"SKIP: Appointment {session_state['appointment_id']} is already confirmed. Do not book again."
+        return f"The appointment (ID: {session_state['appointment_id']}) is already successfully booked and confirmed. You should now just confirm the details with the patient."
     
     try:
         # 1. Database Execution
