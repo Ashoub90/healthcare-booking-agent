@@ -116,11 +116,11 @@ def create_appointment_service(
         # Capture the response from Google
         event = google_cal.create_event(
             summary=f"Appointment: {patient.full_name} ({service.name})",
-            start_time=full_start, # If your create_event method handles objects, keep this. 
-            end_time=full_end      # But usually it needs full_start.isoformat()
+            start_time=full_start,  
+            end_time=full_end      
         )
         
-        # Save the Google Event ID to your Postgres record
+        # Save the Google Event ID to Postgres record
         appointment.google_event_id = event.get('id')
         appointment.sync_status = 'synced'
         db.commit() 
@@ -184,7 +184,7 @@ def cancel_appointment_service(db: Session, appointment_id: int):
     if not appointment:
         raise ValueError(f"Appointment with ID {appointment_id} not found.")
 
-    # NEW: Remove from Google Calendar if an ID exists
+    
     if hasattr(appointment, 'google_event_id') and appointment.google_event_id:
         try:
             google_cal.delete_event(appointment.google_event_id)
@@ -212,11 +212,11 @@ def update_appointment_status_service(
     db: Session, 
     appointment_id: int, 
     new_status: str, 
-    background_tasks: Any = None # Added this
+    background_tasks: Any = None 
 ):
     appointment = db.query(models.Appointment).filter(models.Appointment.id == appointment_id).first()
     
-    print(f"DEBUG: Updating status to {new_status} for ID {appointment_id}") # Add this
+    print(f"DEBUG: Updating status to {new_status} for ID {appointment_id}") 
 
     if not appointment:
         raise ValueError(f"Appointment {appointment_id} not found")

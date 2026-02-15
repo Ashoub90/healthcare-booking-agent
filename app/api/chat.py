@@ -41,7 +41,7 @@ def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
         user_message=request.message
     )
 
-    # result may contain extra data (patient, appointment, availability)
+    
     reply = result.get("reply")
     data = {k: v for k, v in result.items() if k != "reply"}
 

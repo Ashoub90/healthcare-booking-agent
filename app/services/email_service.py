@@ -12,11 +12,11 @@ def send_confirmation_email(patient_email, patient_name, appt_details):
 
     # Create the email object
     message = MIMEMultipart()
-    message["From"] = "clinic@smart-care.com"  # Can be anything in Sandbox
+    message["From"] = "clinic@smart-care.com"  
     message["To"] = patient_email
     message["Subject"] = "Appointment Confirmed!"
 
-    # HTML Body makes it look professional for recruiters
+    
     html = f"""
     <html>
       <body>
@@ -35,6 +35,6 @@ def send_confirmation_email(patient_email, patient_name, appt_details):
             server.starttls()
             server.login(smtp_user, smtp_pass)
             server.sendmail(message["From"], [patient_email], message.as_string())
-        print(f"✅ SUCCESS: Email sent to {patient_email}") # Watch for this in logs
+        print(f"✅ SUCCESS: Email sent to {patient_email}") 
     except Exception as e:
-        print(f"❌ EMAIL ERROR: {str(e)}") # This will tell us if it's Auth or Connection
+        print(f"❌ EMAIL ERROR: {str(e)}") 

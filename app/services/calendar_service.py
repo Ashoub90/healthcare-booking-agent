@@ -12,7 +12,7 @@ class CalendarService:
 
     def _load_credentials(self):
         creds = None
-        # Checks for the token you generated with test_calendar.py
+        # Checks for the token generated with test_calendar.py
         paths = ['token.json', 'app/token.json']
         token_path = next((p for p in paths if os.path.exists(p)), None)
         

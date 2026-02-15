@@ -49,7 +49,7 @@ def create_patient_tool(
     full_name: str,
     phone_number: str,
     email: Optional[str],
-    is_insured: Any, # Changed to Any to catch strings from the AI
+    is_insured: Any, 
     insurance_provider: Optional[str],
     db: Session,
     session_state: Dict[str, Any]
@@ -60,7 +60,7 @@ def create_patient_tool(
         return "Error: Phone number is required to register. Please ask the patient for their phone number."
 
     # 2. BOOLEAN SANITIZATION LAYER
-    # This prevents the (builtins.TypeError) Not a boolean value: 'no' error
+    
     if isinstance(is_insured, str):
         val = is_insured.lower().strip()
         if val in ['yes', 'true', '1', 'y', 'insured']:
@@ -83,7 +83,7 @@ def create_patient_tool(
         )
         
         # 4. State Persistence
-        # We store the ID so the agent doesn't have to ask "Who are you?" again.
+        
         session_state["patient_id"] = patient.id
         session_state["phone_number"] = phone_number
         session_state["full_name"] = full_name
@@ -106,7 +106,7 @@ def check_availability_tool(
     db: Session,
     session_state: Dict[str, Any]
 ) -> str:
-    # 1. AI Auto-Correction (The fix from my last message)
+    
     mapping = {
         "initial consult": 1, "initial consultation": 1,
         "follow-up": 2, "lab review": 3
@@ -130,7 +130,7 @@ def check_availability_tool(
         if not slots:
             return f"No slots available for {appointment_date}."
 
-        # 3. THE FIX: Convert dictionaries/objects to strings
+        
         # If slots look like [{'start_time': '09:00'}, ...], we do this:
         if isinstance(slots[0], dict):
             slot_strings = [str(s.get('start_time', s)) for s in slots]
@@ -200,7 +200,7 @@ def create_appointment_tool(
             display_time = start_time.strftime('%H:%M')
 
         if "already booked" in error_msg.lower() or "conflict" in error_msg.lower():
-            # Now this won't crash even if start_time is a string!
+            
             return f"Notice: This slot ({display_time}) is no longer available. Please ask the user to choose a different time."
             
         return f"System Error: The appointment could not be booked. Reason: {error_msg}"

@@ -6,7 +6,7 @@ from app.core.security import create_access_token
 
 app = FastAPI(title="Healthcare Booking Assistant")
 
-# This tells FastAPI where to look for the token
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 create_tables()

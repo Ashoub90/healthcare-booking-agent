@@ -35,7 +35,7 @@ def list_appointments(db: Session = Depends(get_db)):
 def update_status_api(
     appointment_id: int, 
     new_status: str, 
-    background_tasks: BackgroundTasks, # Added this line
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
     try:
@@ -43,7 +43,7 @@ def update_status_api(
             db=db, 
             appointment_id=appointment_id, 
             new_status=new_status,
-            background_tasks=background_tasks # Pass it to the service
+            background_tasks=background_tasks
         )
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))

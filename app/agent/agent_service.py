@@ -108,8 +108,8 @@ class AgentService:
         # Prompt
         self.prompt = ChatPromptTemplate.from_messages(
             [
-        ("system", SYSTEM_PROMPT), # Remove {session_state} from the string in SYSTEM_PROMPT
-        ("system", "CURRENT SESSION STATE: {session_state}"), # New dedicated line
+        ("system", SYSTEM_PROMPT),
+        ("system", "CURRENT SESSION STATE: {session_state}"),
         MessagesPlaceholder(variable_name="chat_history"),
         ("human", "{input}"),
         MessagesPlaceholder(variable_name="agent_scratchpad"),

@@ -6,9 +6,7 @@ def seed_blocked_slots():
     db = SessionLocal()
     start_date = date.today()
     
-    # Define your break schedule
-    # Day of week: (Start_Hour, End_Hour)
-    # 0=Mon, 1=Tue, 2=Wed, 3=Thu, 4=Fri
+    
     schedule = {
         0: (12, 13), # Mon
         1: (12, 13), # Tue

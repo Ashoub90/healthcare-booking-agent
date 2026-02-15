@@ -3,7 +3,7 @@ from typing import Any, Union
 from jose import jwt
 from passlib.context import CryptContext
 
-# For a portfolio, use a fixed secret. In production, this would be an env variable.
+
 SECRET_KEY = "hkshfkjsdhfkjsdhfkjsdhfkjssd"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30

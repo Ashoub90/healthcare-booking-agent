@@ -9,8 +9,8 @@ from app.tools.agent_tools import (
     check_availability_tool,
     create_appointment_tool,
     send_notification_tool,
-    get_patient_appointments_tool, # New
-    cancel_appointment_tool        # New
+    get_patient_appointments_tool,
+    cancel_appointment_tool       
 )
 
 

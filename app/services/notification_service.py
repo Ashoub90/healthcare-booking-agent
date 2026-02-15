@@ -25,15 +25,13 @@ def send_notification_service(
     # 2. ACTUALLY SEND THE EMAIL
     if channel == "email":
         try:
-            # We reuse your email logic here
-            # In a real app, you'd pass name/date separately, 
-            # but for now we can just use the message string.
+            
             send_confirmation_email(recipient, "Patient", message) 
-            notification.status = "sent" # Update status to sent if successful
+            notification.status = "sent" 
         except Exception:
             notification.status = "failed"
 
-    # ... rest of your logging logic ...
+    
     db.commit()
     db.refresh(notification)
     return notification
