@@ -1,4 +1,4 @@
-# Ignore frontend heavy weights (New Folders)
+# Ignore frontend heavy weights
 clinic-admin-ui/node_modules
 clinic-admin-ui/build
 clinic-patient-chat/node_modules

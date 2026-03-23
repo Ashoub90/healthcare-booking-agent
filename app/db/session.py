@@ -1,5 +1,4 @@
 from app.db.database import SessionLocal, engine, Base
-from app.db import models
 
 
 def create_tables():

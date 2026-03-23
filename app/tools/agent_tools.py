@@ -9,7 +9,6 @@ from app.services.patient_service import (
 from app.services.availability_service import check_availability
 from app.services.appointment_service import create_appointment_service, get_appointments_by_patient, cancel_appointment_service
 from app.services.notification_service import send_notification_service
-from app.services.logging_service import log_agent_action_service
 
 # =========================
 # Tool 1: Lookup Patient
@@ -131,7 +130,7 @@ def check_availability_tool(
             return f"No slots available for {appointment_date}."
 
         
-        # If slots look like [{'start_time': '09:00'}, ...], we do this:
+        # If slots look like [{'start_time': '09:00'}, ...]:
         if isinstance(slots[0], dict):
             slot_strings = [str(s.get('start_time', s)) for s in slots]
         else:

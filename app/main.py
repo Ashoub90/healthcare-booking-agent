@@ -39,7 +39,6 @@ app.include_router(chat.router, prefix="/chat", tags=["Chat"])
 
 @app.post("/token")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    # This is the generic user for your LinkedIn recruiters
     if form_data.username != "admin" or form_data.password != "password123":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

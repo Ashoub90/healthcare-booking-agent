@@ -1,4 +1,3 @@
-# app/services/logging_service.py
 from sqlalchemy.orm import Session
 from typing import Optional
 from app.db import models

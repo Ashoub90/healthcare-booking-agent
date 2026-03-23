@@ -4,7 +4,7 @@ from app.db import models
 from app.services.calendar_service import CalendarService
 from app.services.logging_service import log_agent_action_service
 from app.services.email_service import send_confirmation_email
-from typing import List, Any, Optional
+from typing import Any
 
 LEAD_TIME_HOURS = 1
 google_cal = CalendarService()

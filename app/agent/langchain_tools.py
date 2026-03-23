@@ -1,7 +1,6 @@
 from langchain.tools import StructuredTool
 from sqlalchemy.orm import Session
-from typing import Optional, Dict, Any
-from datetime import date, time
+from typing import Dict, Any
 
 from app.tools.agent_tools import (
     lookup_patient_tool,

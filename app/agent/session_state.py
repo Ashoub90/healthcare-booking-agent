@@ -33,7 +33,6 @@ class DBSessionStateStore:
         Save the state to the DB. 
         Uses an 'upsert' so it creates a new row or updates the existing one.
         """
-        # This is a 'PostgreSQL Upsert' - very efficient!
         stmt = insert(models.SessionState).values(
             session_id=session_id,
             data=state

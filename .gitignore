@@ -1,6 +1,59 @@
-venv/
-__pycache__/
+# =========================
+# Secrets & Environment
+# =========================
 .env
-clinic.db
-token.json
+.env.*
 credentials.json
+token.json
+
+# =========================
+# Databases
+# =========================
+*.db
+*.sqlite3
+
+# =========================
+# Python
+# =========================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+.venv/
+
+# =========================
+# Testing & Coverage
+# =========================
+.pytest_cache/
+.coverage
+htmlcov/
+
+# =========================
+# Logs & Temp Files
+# =========================
+*.log
+*.tmp
+*.bak
+
+# =========================
+# IDE / Editor
+# =========================
+.vscode/
+.idea/
+
+# =========================
+# OS Files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Frontend (React)
+# =========================
+clinic-admin-ui/node_modules/
+clinic-admin-ui/build/
+
+clinic-patient-chat/node_modules/
+clinic-patient-chat/build/

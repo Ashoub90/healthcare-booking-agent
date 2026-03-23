@@ -1,6 +1,5 @@
 from sqlalchemy import Column, Integer, String, Date, Time, DateTime, ForeignKey, Boolean, Float
 from sqlalchemy.orm import relationship
-from datetime import datetime, timezone
 from app.db.database import Base
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import JSONB # Use JSONB for Postgres specifically

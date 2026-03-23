@@ -42,7 +42,7 @@ class CalendarService:
             start = e['start'].get('dateTime', e['start'].get('date'))
             end = e['end'].get('dateTime', e['end'].get('date'))
             
-            # Convert ISO strings to datetime objects for comparison in your logic
+            # Convert ISO strings to datetime objects for comparison in the logic
             busy_slots.append((
                 datetime.datetime.fromisoformat(start.replace('Z', '+00:00')).replace(tzinfo=None),
                 datetime.datetime.fromisoformat(end.replace('Z', '+00:00')).replace(tzinfo=None)

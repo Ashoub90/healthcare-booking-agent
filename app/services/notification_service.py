@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
 from app.db import models
-from app.services.logging_service import log_agent_action_service
 from app.services.email_service import send_confirmation_email
 
 
