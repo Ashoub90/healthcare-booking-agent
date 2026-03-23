@@ -8,6 +8,26 @@ Designed as a real clinic prototype with production-style architecture, persiste
 
 ---
 
+## 🎙️ Voice Interface (Companion Project)
+
+This backend is paired with a real-time voice AI interface:
+
+Voice Agent (LiveKit + STT + TTS):  
+https://github.com/Ashoub90/voice-agent
+
+The voice-agent project enables:
+- Real-time voice conversations (Arabic / English)
+- Speech-to-text (Deepgram)
+- Text-to-speech (ElevenLabs)
+- LiveKit-based streaming communication
+- Agent dispatching based on selected language
+
+Together, both projects form a complete conversational AI system:
+- This repo = brain (logic, tools, memory, scheduling)
+- Voice-agent = voice (real-time interaction layer)
+
+---
+
 ## Overview
 
 This project implements a stateful, tool-augmented AI agent that handles end-to-end appointment scheduling for a medical clinic.  
@@ -64,7 +84,7 @@ The AI agent can:
 
 ## System Architecture
 
-Patient Chat Interface / API  
+Patient Chat Interface / Voice Agent  
 → FastAPI /chat Endpoint  
 → AgentService (LangChain Tool-Calling Agent)  
 → Memory Store (PostgreSQL Conversations)  
@@ -72,8 +92,6 @@ Patient Chat Interface / API
 → Tool Orchestration Layer  
 → Business Services (Patients, Availability, Appointments, Notifications)  
 → External Integrations (Google Calendar, Email SMTP)
-
-This design follows a production-style LLM loop where the agent reasons, calls tools, persists state, and returns structured natural language responses.
 
 ---
 
@@ -113,8 +131,7 @@ Each chat request is logged with:
 - Prompt context and session state
 - Errors and retries
 
-This was essential for debugging complex agent behaviors such as tool misfires, state desynchronization, and booking workflow issues in a stateful, multi-step LLM system.
-
+---
 
 ## Tech Stack
 
@@ -149,14 +166,14 @@ This was essential for debugging complex agent behaviors such as tool misfires, 
 
 ai-healthcare-booking-agent/
 ├── app/
-│   ├── agent/          # LLM agent, memory, session state
-│   ├── api/            # FastAPI endpoints (chat, appointments, etc.)
-│   ├── services/       # Business logic and integrations
-│   ├── tools/          # Agent tool implementations
-│   ├── db/             # Models, database, and session config
-│   └── main.py         # FastAPI entry point
-├── clinic-admin-ui/    # Admin dashboard (React)
-├── clinic-patient-chat/# Patient chat interface (React)
+│   ├── agent/
+│   ├── api/
+│   ├── services/
+│   ├── tools/
+│   ├── db/
+│   └── main.py
+├── clinic-admin-ui/
+├── clinic-patient-chat/
 ├── docker-compose.yml
 ├── Dockerfile
 └── requirements.txt
@@ -201,79 +218,73 @@ Response:
 ## Database Design
 
 Key tables:
-- patients: Stores patient identity and contact details
-- appointments: Appointment records with status and timing
-- service_types: Configurable clinic services and durations
-- conversations: Persistent chat history for LLM memory
-- session_states: JSONB state storage for agent context
-- agent_logs: Agent decisions and system actions
-- notifications: Email and communication tracking
-- blocked_slots: Manually blocked time ranges
-
-This schema enables stateful AI interactions, auditability, and real-world scheduling constraints.
+- patients
+- appointments
+- service_types
+- conversations
+- session_states
+- agent_logs
+- notifications
+- blocked_slots
 
 ---
 
 ## Environment Variables
 
-Create a .env file in the project root:
+Create a .env file:
 
 OPENAI_API_KEY=your_openai_key
 POSTGRES_USER=your_user
 POSTGRES_PASSWORD=your_password
 POSTGRES_DB=your_database
-DATABASE_URL=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-MAILTRAP_USER=your_mailtrap_user
-MAILTRAP_PASS=your_mailtrap_pass
-MAILTRAP_HOST=your_mailtrap_host
-MAILTRAP_PORT=your_mailtrap_port
-LANGCHAIN_API_KEY = "lsv2_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+DATABASE_URL=...
+MAILTRAP_USER=...
+MAILTRAP_PASS=...
+MAILTRAP_HOST=...
+MAILTRAP_PORT=...
+LANGCHAIN_API_KEY=...
 LANGCHAIN_TRACING_V2=true
-LANGCHAIN_PROJECT="project_name"
-LANGCHAIN_ENDPOINT="https://api.smith.langchain.com"
-JWT_SECRET="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+LANGCHAIN_PROJECT=...
+LANGCHAIN_ENDPOINT=https://api.smith.langchain.com
+JWT_SECRET=...
 
 ---
 
-## Running with Docker (Recommended)
+## Running with Docker
 
 docker-compose up --build
 
-API will be available at:
+API:
 http://localhost:8000
 
-Interactive API docs:
+Docs:
 http://localhost:8000/docs
 
 ---
 
-## Local Development Setup
+## Local Development
 
-1. Clone the repository
-git clone https://github.com/yourusername/ai-healthcare-booking-agent.git
+git clone https://github.com/Ashoub90/ai-healthcare-booking-agent.git
 cd ai-healthcare-booking-agent
-
-2. Install dependencies
 pip install -r requirements.txt
-
-3. Run the server
 uvicorn app.main:app --reload
 
 ---
 
 ## Design Decisions
 
-- Deterministic LLM configuration for consistent tool usage
-- Two-phase booking confirmation for safe automation
-- Tool input sanitization to handle LLM-generated values safely
-- Persistent memory instead of in-memory chat storage
-- Session-aware tool execution for multi-turn workflows
-- Google Calendar + database hybrid availability checking
-- Logging layer for observability and debugging
-- Production-style layered architecture (API → Agent → Services → DB)
+- Deterministic LLM for reliability
+- Two-phase confirmation for safe booking
+- Persistent memory instead of in-memory chat
+- Session-aware workflows
+- Hybrid availability (DB + Google Calendar)
+- Full observability via logging and LangSmith
+- Production-style layered architecture
 
 ---
 
 ## Intended Use
 
-This project is built as a real clinic prototype demonstrating production-style LLM architecture, tool orchestration, persistent memory, and stateful AI agent design for healthcare scheduling workflows.
+This project demonstrates a production-style AI agent capable of real-world healthcare scheduling, combining LLM reasoning, tool orchestration, persistent memory, and external integrations.
+
+It is designed to be used alongside the voice-agent project to enable fully conversational (voice + text) booking experiences.

@@ -3,9 +3,21 @@ from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from app.api import patients, appointments, availability, service_types, business_hours, chat, logs
 from app.db.session import create_tables
 from app.core.security import create_access_token
+from fastapi import Query
+from auth_livekit import create_livekit_token
+from fastapi.middleware.cors import CORSMiddleware
+from dispatch_agent import dispatch_agent
 
 app = FastAPI(title="Healthcare Booking Assistant")
 
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # for now (dev)
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
@@ -52,3 +64,18 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 @app.get("/")
 def health_check():
     return {"status": "running"}
+
+
+
+
+@app.get("/livekit-token", include_in_schema=False)
+async def get_livekit_token(
+    identity: str = Query(...),
+    room: str = Query(...),
+    lang: str = Query(...),
+):
+    token = create_livekit_token(identity, room)
+
+    await dispatch_agent(room, lang)
+
+    return {"token": token}
