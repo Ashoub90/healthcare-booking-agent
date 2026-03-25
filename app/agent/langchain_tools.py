@@ -49,15 +49,20 @@ def get_langchain_tools(
 
         StructuredTool.from_function(
             name="check_availability",
-            description="Check available slots for a date (YYYY-MM-DD) and service_type_id (1: Initial, 2: Follow-up, 3: Lab Review).",
-            func=lambda appointment_date, service_type_id:
+            description=(
+                "Check available slots for a date (YYYY-MM-DD), service_type_id "
+                "and optionally requested_time (HH:MM). "
+                "Returns whether the requested time is available or suggests closest times."
+            ),
+            func=lambda appointment_date, service_type_id, requested_time=None:
                 check_availability_tool(
                     appointment_date=appointment_date,
                     service_type_id=service_type_id,
+                    requested_time=requested_time,
                     db=db,
                     session_state=session_state
                 )
-),
+        ),
 
         StructuredTool.from_function(
             name="create_appointment",
@@ -75,21 +80,29 @@ def get_langchain_tools(
 
         StructuredTool.from_function(
             name="get_patient_appointments",
-            description="Retrieves upcoming appointments. Use the 'ID' from this list when calling cancel_appointment.",
+            description=(
+                "Retrieves upcoming appointments and presents them as a numbered list. "
+                "Ask the user which number they want to cancel."
+            ),
             func=lambda patient_id:
                 get_patient_appointments_tool(
                     patient_id=patient_id,
-                    db=db
+                    db=db,
+                    session_state=session_state
                 )
         ),
 
         StructuredTool.from_function(
             name="cancel_appointment",
-            description="Cancels an appointment. You MUST provide the exact appointment_id retrieved from get_patient_appointments. Never guess or use '1' as a default.",
-            func=lambda appointment_id:
+            description=(
+                "Cancels an appointment. The user must choose from the presented list. "
+                "Do NOT guess the appointment_id."
+            ),
+            func=lambda appointment_id=None:
                 cancel_appointment_tool(
                     appointment_id=appointment_id,
-                    db=db
+                    db=db,
+                    session_state=session_state
                 )
         ),
 

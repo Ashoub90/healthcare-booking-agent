@@ -102,9 +102,10 @@ def create_patient_tool(
 def check_availability_tool(
     appointment_date: str,
     service_type_id: Any,
+    requested_time: str | None,
     db: Session,
     session_state: Dict[str, Any]
-) -> str:
+) -> Dict:
     
     mapping = {
         "initial consult": 1, "initial consultation": 1,
@@ -118,7 +119,6 @@ def check_availability_tool(
         elif clean_id.isdigit():
             service_type_id = int(clean_id)
 
-    # 2. Get the slots
     try:
         slots = check_availability(
             appointment_date=appointment_date,
@@ -127,23 +127,62 @@ def check_availability_tool(
         )
 
         if not slots:
-            return f"No slots available for {appointment_date}."
+            return {"available_slots": []}
 
-        
-        # If slots look like [{'start_time': '09:00'}, ...]:
+        # Extract slot strings
         if isinstance(slots[0], dict):
-            slot_strings = [str(s.get('start_time', s)) for s in slots]
-        else:
-            # If they are objects with a start_time attribute:
             slot_strings = [
-                s.start_time.strftime('%H:%M') if hasattr(s, 'start_time') else str(s) 
+                s["start_time"].strftime("%H:%M") if hasattr(s["start_time"], "strftime")
+                else str(s["start_time"])
+                for s in slots
+            ]
+        else:
+            slot_strings = [
+                s.start_time.strftime("%H:%M") if hasattr(s, 'start_time')
+                else str(s)
                 for s in slots
             ]
 
-        return f"Available slots for service ID {service_type_id} on {appointment_date}: {', '.join(slot_strings)}"
+        # ✅ If no requested time → return all slots
+        if not requested_time:
+            return {
+                "available_slots": slot_strings
+            }
+
+        requested_time = requested_time.strip()
+
+        # ✅ Deterministic availability check
+        if requested_time in slot_strings:
+            return {
+                "available": True,
+                "requested_time": requested_time
+            }
+        else:
+            from datetime import datetime
+
+            def to_minutes(t):
+                return t.hour * 60 + t.minute
+
+            requested_dt = datetime.strptime(requested_time, "%H:%M")
+            requested_m = to_minutes(requested_dt)
+
+            parsed_slots = [datetime.strptime(t, "%H:%M") for t in slot_strings]
+
+            sorted_slots = sorted(
+                parsed_slots,
+                key=lambda t: abs(to_minutes(t) - requested_m)
+            )
+
+            closest = [t.strftime("%H:%M") for t in sorted_slots[:2]]
+
+            return {
+                "available": False,
+                "requested_time": requested_time,
+                "closest_slots": closest
+            }
 
     except Exception as e:
-        return f"System Error while checking availability: {str(e)}"
+        return {"error": f"System Error while checking availability: {str(e)}"}
 
 
 # =========================
@@ -232,39 +271,74 @@ def send_notification_tool(
 
 def get_patient_appointments_tool(
     patient_id: int,
-    db: Session
-) -> str:
-    """Retrieves all upcoming appointments for a specific patient."""
-    
+    db: Session,
+    session_state: dict
+) -> Dict:
+
     if not patient_id:
-        return "Error: I don't have a patient ID. Please identify the patient first."
+        return {"error": "missing_patient_id"}
 
     try:
-        
         appointments = get_appointments_by_patient(db, patient_id)
 
         if not appointments:
-            return "The patient has no appointments scheduled."
+            return {"appointments": []}
 
-        # Format the list into a readable string for the AI
-        report = "Here are the patient's upcoming appointments:\n"
-        for appt in appointments:
-            report += f"- ID: {appt.id} | Date: {appt.appointment_date} | Time: {appt.start_time.strftime('%H:%M')} | Status: {appt.status}\n"
-        
-        return report
+        structured = [
+            {
+                "id": appt.id,
+                "date": str(appt.appointment_date),
+                "time": appt.start_time.strftime("%H:%M")
+            }
+            for appt in appointments
+        ]
+
+        # store for later cancel
+        session_state["pending_appointments"] = structured
+
+        return {
+            "appointments": structured
+        }
 
     except Exception as e:
-        return f"System Error: Could not retrieve appointments. {str(e)}"    
+        return {"error": str(e)}
 
 
 def cancel_appointment_tool(
-    appointment_id: int,
-    db: Session
-) -> str:
-    """Cancels an existing appointment by its ID."""
+    appointment_id: int | None,
+    db: Session,
+    session_state: dict
+) -> Dict:
+
     try:
-        cancel_appointment_service(db, appointment_id)
-        return f"Success: Appointment {appointment_id} has been cancelled."
+        pending = session_state.get("pending_appointments")
+
+        if not pending:
+            return {"error": "no_pending_appointments"}
+
+        selected_id = None
+
+        if appointment_id:
+            for appt in pending:
+                if appt["id"] == appointment_id:
+                    selected_id = appointment_id
+                    break
+
+        if not selected_id:
+            if len(pending) == 1:
+                selected_id = pending[0]["id"]
+            else:
+                return {"error": "multiple_appointments_no_selection"}
+
+        cancel_appointment_service(db, selected_id)
+
+        session_state.pop("pending_appointments", None)
+
+        return {
+            "success": True,
+            "cancelled_appointment_id": selected_id
+        }
+
     except Exception as e:
         db.rollback()
-        return f"Error: Could not cancel appointment. {str(e)}"        
+        return {"error": str(e)}
